@@ -28,6 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $niveau_etude = $input['niveau_etude'] ?? ''; 
     $faculte = $input['faculte'] ?? ''; 
     $cycle = $input['cycle'] ?? ''; 
+    $specialite=$input['specialite'] ?? '';
    
 
     // --- Input Validation for the NEW Student's Data ---
@@ -76,22 +77,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
 
     
-    $sql_insert = "INSERT INTO etudiants (username,lastname, email, cin, niveauEtude,nomFaculte,cycle) VALUES (?, ?, ?, ?,?,?,?)";
+    $sql_insert = "INSERT INTO etudiants (username,lastname, email, cin, niveauEtude,nomFaculte,cycle,specialite) VALUES (?, ?, ?, ?,?,?,?,?)";
 
     if ($stmt_insert = $mysqli->prepare($sql_insert)) {
-        $stmt_insert->bind_param("sssssss", $param_username,$param_lastname, $param_email, $param_cin, $param_niveauEtude,$param_cycle);
+        $stmt_insert->bind_param("ssssssss", $param_username,$param_lastname, $param_email, $param_cin, $param_niveauEtude,$param_nomFaculte,$param_cycle,$param_specialite);
 
         $param_username = $username;
         $param_lastname=$lastname;
         $param_email = $email;
         $param_cin = $cin; 
         $param_niveauEtude=$niveau_etude;
+        $param_nomFaculte=$faculte;
         $param_cycle=$cycle;
+        $param_specialite=$specialite;
 
         try {
             if ($stmt_insert->execute()) {
                 $response['status'] = 'success';
-                $response['message'] = 'Encadrant added successfully!';
+                $response['message'] = 'Student added successfully!';
                 $response['etudiantID'] = $mysqli->insert_id; // Get the ID of the newly created user
             } else {
                 $response['status'] = 'error';

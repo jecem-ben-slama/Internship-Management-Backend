@@ -3,7 +3,7 @@ require_once '../db_connect.php';
 require_once '../verify_token.php'; 
 header('Content-Type: application/json');
 $response = array();
-$userData = verifyJwtToken(); // $userData will contain ['userID', 'username', 'role'] if token is valid.
+$userData = verifyJwtToken(); // $userData = ['userID', 'username', 'role']
 
 $allowedRoles = ['Gestionnaire']; 
 
@@ -23,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($input['username'] ?? '');
     $email = trim($input['email'] ?? '');
     $password = $input['password'] ?? '';
-    $lastname=$trim(input['lastname']??'');
+    $lastname=trim($input['lastname']??'');
     // The role for the new user will be fixed as 'Encadrant'
     $role = 'Encadrant'; 
 
@@ -85,7 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $param_email = $email;
         $param_lastname=$lastname;
         $param_password = $hashed_password;
-        $param_role = $role; // This is fixed as 'Encadrant'
+        $param_role = $role;
 
         try {
             if ($stmt_insert->execute()) {
