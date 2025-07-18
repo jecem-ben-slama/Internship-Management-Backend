@@ -1,0 +1,90 @@
+[18-Jul-2025 09:10:49 Europe/Berlin] --- verifyJwtToken START ---
+[18-Jul-2025 09:10:49 Europe/Berlin] Apache Request Headers: Array
+(
+    [Authorization] => Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NTI3Mzc5OTAsImV4cCI6MTc1MzM0Mjc5MCwiZGF0YSI6eyJ1c2VySUQiOjEsInVzZXJuYW1lIjoiZ2VzdGlvbm5haXJlIiwicm9sZSI6Ikdlc3Rpb25uYWlyZSJ9fQ.k9s5rMp5-dRAUWwNbOdV-P0YfV3AjOuG_AwJBrP9Ldk
+    [Content-Type] => application/json
+    [User-Agent] => PostmanRuntime/7.44.1
+    [Accept] => */*
+    [Postman-Token] => 6cc1b028-9471-4ca2-8b49-5891c1a23e9d
+    [Host] => localhost
+    [Accept-Encoding] => gzip, deflate, br
+    [Connection] => keep-alive
+    [Content-Length] => 98
+)
+
+[18-Jul-2025 09:10:49 Europe/Berlin] Auth Header found: YES
+[18-Jul-2025 09:10:49 Europe/Berlin] Extracted JWT: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NTI3Mzc5OTAsImV4cCI6MTc1MzM0Mjc5MCwiZGF0YSI6eyJ1c2VySUQiOjEsInVzZXJuYW1lIjoiZ2VzdGlvbm5haXJlIiwicm9sZSI6Ikdlc3Rpb25uYWlyZSJ9fQ.k9s5rMp5-dRAUWwNbOdV-P0YfV3AjOuG_AwJBrP9Ldk
+[18-Jul-2025 09:10:49 Europe/Berlin] JWT_SECRET_KEY value: 15879432874563201566489523014552
+[18-Jul-2025 09:10:49 Europe/Berlin] Token successfully decoded.
+[18-Jul-2025 09:10:49 Europe/Berlin] --- verifyJwtToken END ---
+[18-Jul-2025 09:10:49 Europe/Berlin] PHP Debug: Received PUT request. Raw Input: Array
+(
+    [stageID] => 17
+    [typeStage] => PFA
+    [dateFin] => 2025-08-01
+    [statut] => Validé
+)
+
+[18-Jul-2025 09:10:49 Europe/Berlin] PHP Debug: Extracted stageID (from 'internshipID' in Flutter): NULL
+[18-Jul-2025 09:10:49 Europe/Berlin] PHP Debug: Error - Invalid or missing internshipID.
+[18-Jul-2025 09:12:17 Europe/Berlin] --- verifyJwtToken START ---
+[18-Jul-2025 09:12:17 Europe/Berlin] Apache Request Headers: Array
+(
+    [Authorization] => Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NTI3Mzc5OTAsImV4cCI6MTc1MzM0Mjc5MCwiZGF0YSI6eyJ1c2VySUQiOjEsInVzZXJuYW1lIjoiZ2VzdGlvbm5haXJlIiwicm9sZSI6Ikdlc3Rpb25uYWlyZSJ9fQ.k9s5rMp5-dRAUWwNbOdV-P0YfV3AjOuG_AwJBrP9Ldk
+    [Content-Type] => application/json
+    [User-Agent] => PostmanRuntime/7.44.1
+    [Accept] => */*
+    [Postman-Token] => c344e205-c4c1-4d93-9307-19b2d8550de4
+    [Host] => localhost
+    [Accept-Encoding] => gzip, deflate, br
+    [Connection] => keep-alive
+    [Content-Length] => 285
+)
+
+[18-Jul-2025 09:12:17 Europe/Berlin] Auth Header found: YES
+[18-Jul-2025 09:12:17 Europe/Berlin] Extracted JWT: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NTI3Mzc5OTAsImV4cCI6MTc1MzM0Mjc5MCwiZGF0YSI6eyJ1c2VySUQiOjEsInVzZXJuYW1lIjoiZ2VzdGlvbm5haXJlIiwicm9sZSI6Ikdlc3Rpb25uYWlyZSJ9fQ.k9s5rMp5-dRAUWwNbOdV-P0YfV3AjOuG_AwJBrP9Ldk
+[18-Jul-2025 09:12:17 Europe/Berlin] JWT_SECRET_KEY value: 15879432874563201566489523014552
+[18-Jul-2025 09:12:17 Europe/Berlin] Token successfully decoded.
+[18-Jul-2025 09:12:17 Europe/Berlin] --- verifyJwtToken END ---
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: Received PUT request. Raw Input: Array
+(
+    [internshipID] => 17
+    [typeStage] => Stage d'été modifié
+    [dateDebut] => 2024-07-01
+    [dateFin] => 2024-09-30
+    [statut] => Validé
+    [estRemunere] => 1
+    [montantRemuneration] => 1500.5
+    [encadrantProID] => 1
+    [chefCentreValidationID] => 2
+)
+
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: Extracted stageID (from 'internshipID' in Flutter): 17
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: Adding typeStage: Stage d'été modifié
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: Adding dateDebut: 2024-07-01
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: Adding dateFin: 2024-09-30
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: Adding statut: Validé
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: Adding estRemunere: true (1)
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: Adding montantRemuneration: 1500.5
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: Adding encadrantProID: 1
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: Adding chefCentreValidationID: 2
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: SQL Query: UPDATE stages SET typeStage = ?, dateDebut = ?, dateFin = ?, statut = ?, estRemunere = ?, montantRemuneration = ?, encadrantProID = ?, chefCentreValidationID = ? WHERE stageID = ?
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: Bound Types String: ssssidiis
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Debug: Bound Parameters (values): Array
+(
+    [0] => Stage d'été modifié
+    [1] => 2024-07-01
+    [2] => 2024-09-30
+    [3] => Validé
+    [4] => 1
+    [5] => 1500.5
+    [6] => 1
+    [7] => 2
+    [8] => 17
+)
+
+[18-Jul-2025 09:12:17 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`pfe`.`stages`, CONSTRAINT `stages_ibfk_4` FOREIGN KEY (`chefCentreValidationID`) REFERENCES `users` (`userID`)) in C:\xampp\htdocs\backend\Gestionnaire\edit_stage.php:169
+Stack trace:
+#0 C:\xampp\htdocs\backend\Gestionnaire\edit_stage.php(169): mysqli_stmt->execute()
+#1 {main}
+  thrown in C:\xampp\htdocs\backend\Gestionnaire\edit_stage.php on line 169

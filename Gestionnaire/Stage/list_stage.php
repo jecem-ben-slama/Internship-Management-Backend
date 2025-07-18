@@ -4,9 +4,12 @@ require_once '../verify_token.php'; // Path to your JWT verification file
 
 // CORS headers - crucial for Flutter Web
 header("Access-Control-Allow-Origin: *"); // Allow all origins for development
-header("Access-Control-Allow-Methods: GET, OPTIONS"); // Allow GET and OPTIONS methods
-header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Allow Content-Type and Authorization headers
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Allow Content-Type and Authorization headers
 header("Access-Control-Max-Age: 3600"); // Cache preflight requests for 1 hour
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+// You're missing this line for OPTIONS requests:
+header("Access-Control-Allow-Credentials: true");
+
 
 // Handle preflight OPTIONS requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
