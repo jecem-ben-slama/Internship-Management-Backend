@@ -1,6 +1,6 @@
 <?php
-require_once '../db_connect.php'; // Path to your database connection file
-require_once '../verify_token.php'; // Path to your JWT verification file
+require_once '../../db_connect.php'; // Path to your database connection file
+require_once '../../verify_token.php'; // Path to your JWT verification file
 
 // CORS headers - crucial for Flutter Web
 header("Access-Control-Allow-Origin: *"); // Allow all origins for development

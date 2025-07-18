@@ -1,6 +1,6 @@
     <?php
-    require_once '../db_connect.php';
-    require_once '../verify_token.php';
+    require_once '../../db_connect.php';
+    require_once '../../verify_token.php';
 
     // CORS headers
     header("Access-Control-Allow-Origin: *");

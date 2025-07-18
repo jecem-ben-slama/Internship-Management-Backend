@@ -1,10 +1,9 @@
 <?php
 // delete_encadrant.php
-// Allows ONLY Gestionnaire sujets to delete an Encadrant sujet from the sujets table, protected by JWT.
 
 // Include necessary files. Paths are relative from BACKEND/Auth/
-require_once '../db_connect.php';
-require_once '../verify_token.php'; // Your JWT verification function
+require_once '../../db_connect.php'; // Database connection
+require_once '../../verify_token.php'; // Your JWT verification function
 
 header('Content-Type: application/json');
 $response = array();

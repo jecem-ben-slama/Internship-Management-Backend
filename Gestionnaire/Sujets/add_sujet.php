@@ -1,7 +1,7 @@
 <?php
 
-require_once '../db_connect.php'; 
-require_once '../verify_token.php'; 
+require_once '../../db_connect.php'; 
+require_once '../../verify_token.php'; 
 header('Content-Type: application/json');
 $userData = verifyJwtToken(); // $userData = ['userID', 'username', 'role'] 
 $allowedRoles = ['Gestionnaire']; // Only Gestionnaire can add subjects.
