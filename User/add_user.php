@@ -20,7 +20,7 @@ $response = array();
 
 $userData = verifyJwtToken();
 
-$allowedRoles = ['Gestionnaire', 'ChefCentreInformation'];
+$allowedRoles = ['Gestionnaire', 'ChefCentreInformatique'];
 if (!in_array($userData['role'], $allowedRoles)) {
     http_response_code(403);
     echo json_encode(['status' => 'error', 'message' => 'Access denied. You do not have permission to add users.']);

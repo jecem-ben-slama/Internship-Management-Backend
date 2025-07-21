@@ -23,7 +23,7 @@ $response = array(); // Initialize response array
 $userData = verifyJwtToken(); // Expected to return ['userID', 'username', 'role'] or exit if invalid
 
 // Define allowed roles for accessing this endpoint
-$allowedRoles = ['Gestionnaire', 'ChefCentreInformation']; // Only these roles can delete users
+$allowedRoles = ['Gestionnaire', 'ChefCentreInformatique']; // Only these roles can delete users
 
 if (!in_array($userData['role'], $allowedRoles)) {
     http_response_code(403); // Forbidden

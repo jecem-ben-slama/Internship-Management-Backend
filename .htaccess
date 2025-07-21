@@ -1,0 +1,16 @@
+# C:\xampp\htdocs\backend\.htaccess
+
+RewriteEngine On
+
+# Route PUT requests for /internships/{ID}/statut to the PHP script
+# This exact RewriteRule depends on your folder structure, adjust if needed
+# Assuming your /backend/ URL corresponds to C:\xampp\htdocs\backend\
+RewriteRule ^internships/([0-9]+)/statut/?$ Gestionnaire/Stage/update_internship_status.php [QSA,L]
+
+# Ensure Apache allows HTTP methods like PUT for your PHP script
+<Files "ChefCentre/update_internship_status.php">
+    <Limit GET POST PUT DELETE OPTIONS>
+        Order allow,deny
+        Allow from all
+    </Limit>
+</Files>

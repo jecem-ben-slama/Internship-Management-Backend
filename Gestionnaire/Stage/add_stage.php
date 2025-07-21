@@ -50,7 +50,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $estRemunere = filter_var($input['estRemunere'] ?? null, FILTER_VALIDATE_INT); // 0 or 1
     $montantRemuneration = filter_var($input['montantRemuneration'] ?? null, FILTER_VALIDATE_FLOAT); // Can be null
     $encadrantProID = filter_var($input['encadrantProID'] ?? null, FILTER_VALIDATE_INT); // Can be null
-    $chefCentreValidationID = filter_var($input['chefCentreValidationID'] ?? null, FILTER_VALIDATE_INT); // Can be null
 
     // --- Input Validation ---
     if (is_null($etudiantID) || is_null($sujetID) || empty($typeStage) || empty($dateDebut) || empty($dateFin) || empty($statut) || is_null($estRemunere)) {
@@ -87,7 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Prepare SQL INSERT Statement
     // Columns: stageID (auto), etudiantID, sujetID, typeStage, dateDebut, dateFin, statut, estRemunere, montantRemuneration, encadrantProID, chefCentreValidationID
     // The 's' types should match your database column types
-    $sql_insert = "INSERT INTO stages (etudiantID, sujetID, typeStage, dateDebut, dateFin, statut, estRemunere, montantRemuneration, encadrantProID, chefCentreValidationID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql_insert = "INSERT INTO stages (etudiantID, sujetID, typeStage, dateDebut, dateFin, statut, estRemunere, montantRemuneration, encadrantProID) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     if ($stmt = $mysqli->prepare($sql_insert)) {
         // 'issssdidis' -> i: int, s: string, d: double (decimal), null uses null
@@ -99,13 +98,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Correct way to handle potential nulls with mysqli::bind_param
         $param_montantRemuneration = $montantRemuneration;
         $param_encadrantProID = $encadrantProID;
-        $param_chefCentreValidationID = $chefCentreValidationID;
 
         // If a value is null, try to set its type explicitly or handle it outside bind_param if it causes issues.
         // For typical int/float fields that are nullable, simply passing null will work if the column is defined as NULLABLE.
         // The 'd' for float and 'i' for int should be fine if you're passing null directly.
 
-        $stmt->bind_param("iissssisii",
+        $stmt->bind_param("iissssisi",
             $etudiantID,
             $sujetID,
             $typeStage,
@@ -115,7 +113,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $estRemunere,
             $param_montantRemuneration,
             $param_encadrantProID,
-            $param_chefCentreValidationID
         );
 
         try {

@@ -5,7 +5,10 @@
 require_once '../../db_connect.php'; // Database connection
 require_once '../../verify_token.php'; // Your JWT verification function
 
-header('Content-Type: application/json');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Max-Age: 3600");
 $response = array();
 
 // --- Authentication and Authorization Check ---

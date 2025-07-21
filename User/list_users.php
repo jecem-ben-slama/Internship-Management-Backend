@@ -23,7 +23,7 @@ $response = array(); // Initialize response array
 $userData = verifyJwtToken(); // Expected to return ['userID', 'username', 'role'] or exit if invalid
 
 // Define allowed roles for accessing this endpoint
-$allowedRolesEndpoint = ['Gestionnaire', 'ChefCentreInformation', 'Encadrant']; // For example, an Encadrant might need to see other Encadrants or Gestionnaires. Adjust as needed.
+$allowedRolesEndpoint = ['Gestionnaire', 'ChefCentreInformatique', 'Encadrant']; // For example, an Encadrant might need to see other Encadrants or Gestionnaires. Adjust as needed.
 
 if (!in_array($userData['role'], $allowedRolesEndpoint)) {
     http_response_code(403); // Forbidden

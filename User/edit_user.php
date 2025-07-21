@@ -24,7 +24,7 @@ $userData = verifyJwtToken(); // Expected to return ['userID', 'username', 'role
 
 // Define allowed roles for accessing this endpoint
 // Admins can edit any user; users can edit their own profile.
-$allowedRoles = ['Gestionnaire', 'ChefCentreInformation']; 
+$allowedRoles = ['Gestionnaire', 'ChefCentreInformatique']; 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") { // Using POST as per your UserRepository
     $input = json_decode(file_get_contents('php://input'), true);
@@ -98,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") { // Using POST as per your UserReposi
         $bind_params[] = $lastname;
     }
     // Only allow role change by specific admin roles, not by the user themselves
-    if ($role !== null && in_array($userData['role'], ['Gestionnaire', 'ChefCentreInformation'])) {
+    if ($role !== null && in_array($userData['role'], ['Gestionnaire', 'ChefCentreInformatique'])) {
         $set_clauses[] = 'role = ?';
         $bind_types .= 's';
         $bind_params[] = $role;
