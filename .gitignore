@@ -1,0 +1,2 @@
+# mail_config.php should not be committed as it contains sensitive info
+mail_config.php

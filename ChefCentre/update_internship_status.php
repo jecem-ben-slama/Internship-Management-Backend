@@ -1,20 +1,15 @@
 <?php
 // Include necessary files
-require_once '../db_connect.php';       // Path to your database connection file (e.g., C:\xampp\htdocs\db_connect.php)
-require_once '../verify_token.php';     // Path to your JWT verification file
+require_once '../db_connect.php';
+require_once '../verify_token.php';
 
 // PHPMailer Autoload (assuming you installed it via Composer in your 'backend' folder)
-require '../vendor/autoload.php';      // Path to Composer's autoload.php (e.g., C:\xampp\htdocs\backend\vendor\autoload.php)
+require '../vendor/autoload.php';
 
-// If you installed PHPMailer manually, uncomment and adjust these paths:
-// use PHPMailer\PHPMailer\PHPMailer;
-// use PHPMailer\PHPMailer\Exception;
-// require 'PHPMailer/src/Exception.php'; // Adjust path based on where you put PHPMailer's src folder
-// require 'PHPMailer/src/PHPMailer.php';
-// require 'PHPMailer/src/SMTP.php';
+// Include your custom mailer utility
+require_once 'send_email.php'; // Adjust path if send_email.php is in a different directory
 
-
-// Import PHPMailer classes into the global namespace
+// Import PHPMailer classes into the global namespace - still needed here if you access PHPMailer constants directly
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -115,41 +110,10 @@ if ($_SERVER["REQUEST_METHOD"] == "PUT") {
                         $studentName = trim($row['studentUsername'] . ' ' . $row['studentLastname']);
                         $subjectTitle = $row['subjectTitle'];
 
-                        // --- PHPMailer Email Sending Logic ---
-                        $mail = new PHPMailer(true); // true enables exceptions, useful for debugging
+                        // Call the new function to send email
+                        $emailSendResult = sendInternshipAcceptanceEmail($studentEmail, $studentName, $subjectTitle);
+                        $response['email_status'] = $emailSendResult['message'];
 
-                        try {
-                            // Server settings for Gmail SMTP (adjust for your SMTP provider if not Gmail)
-                            $mail->isSMTP();                                    // Send using SMTP
-                            $mail->Host       = 'smtp.gmail.com';             // Set the SMTP server to send through
-                            $mail->SMTPAuth   = true;                           // Enable SMTP authentication
-                            $mail->Username   = 'benslemajecem@gmail.com'; // SMTP username (your full Gmail address)
-                            $mail->Password   = 'igwb bzxt cyqr smxp';      // SMTP password (use an App Password if 2FA is on)
-                            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` also an option (port 465)
-                            $mail->Port       = 587;                            // TCP port to connect to; use 465 for `PHPMailer::ENCRYPTION_SMTPS`
-
-                            // Recipients
-                            $mail->setFrom('benslemajecem@gmail.com', 'Your Internship Platform'); // Sender email and name (must be valid)
-                            $mail->addAddress($studentEmail, $studentName);     // Add a recipient
-
-                            // Content
-                            $mail->isHTML(false);                               // Set email format to plain text (set true for HTML email)
-                            $mail->Subject = "Your Internship Application for '$subjectTitle' has been ACCEPTED!";
-                            $message_body = "Dear $studentName,\n\n";
-                            $message_body .= "We are pleased to inform you that your internship application for the subject: '$subjectTitle' has been ACCEPTED.\n\n";
-                            $message_body .= "Please log in to the platform for further details and next steps.\n\n";
-                            $message_body .= "Congratulations!\n\n";
-                            $message_body .= "Sincerely,\nYour Internship Management Team";
-
-                            $mail->Body    = $message_body;
-                            $mail->AltBody = $message_body; // Plain text version for non-HTML mail clients
-
-                            $mail->send();
-                            $response['email_status'] = 'Email sent to student via SMTP.';
-                        } catch (Exception $e) {
-                            $response['email_status'] = "Email could not be sent. Mailer Error: {$mail->ErrorInfo}";
-                            error_log("PHPMailer Error for internship $internshipId: {$mail->ErrorInfo}");
-                        }
                     } else {
                         $response['email_status'] = 'Student email not found for internship ID ' . $internshipId . '.';
                         error_log("Student email not found for internship ID " . $internshipId);
