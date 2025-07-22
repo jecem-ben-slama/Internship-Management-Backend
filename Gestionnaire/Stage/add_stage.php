@@ -46,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $typeStage = trim($input['typeStage'] ?? '');
     $dateDebut = trim($input['dateDebut'] ?? ''); // Assuming 'YYYY-MM-DD' format
     $dateFin = trim($input['dateFin'] ?? '');   // Assuming 'YYYY-MM-DD' format
-    $statut = trim($input['statut'] ?? ''); // Should match enum values: 'Proposé', 'Validé', 'Refusé', 'En cours', 'Terminé'
+    $statut = "Proposé"; // Should match enum values: 'Proposé', 'Validé', 'Refusé', 'En cours', 'Terminé'
     $estRemunere = filter_var($input['estRemunere'] ?? null, FILTER_VALIDATE_INT); // 0 or 1
     $montantRemuneration = filter_var($input['montantRemuneration'] ?? null, FILTER_VALIDATE_FLOAT); // Can be null
     $encadrantProID = filter_var($input['encadrantProID'] ?? null, FILTER_VALIDATE_INT); // Can be null
