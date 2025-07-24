@@ -251,6 +251,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         try {
             if ($stmt->execute()) {
                 if ($stmt->affected_rows > 0) {
+                    http_response_code(200); // OK
                     $response['status'] = 'success';
                     $response['message'] = 'Student updated successfully.';
                 } else {
@@ -265,7 +266,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             $response['status'] = 'error';
                             $response['message'] = 'Student not found.';
                         } else {
-                            $response['status'] = 'info'; // No actual change, data was identical
+                            // Student exists, but no changes were made (redundant update)
+                            http_response_code(200); // Still 200 OK, as the request was processed
+                            $response['status'] = 'info'; // Use 'info' status
                             $response['message'] = 'Student data is already up-to-date (no changes made).';
                         }
                         $check_exist_stmt->close();
