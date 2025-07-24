@@ -7,21 +7,27 @@
 require_once '../../db_connect.php';
 require_once '../../verify_token.php';
 
-// 3. Set the Content-Type header for the response
 header("Access-Control-Allow-Origin: *"); // Allow all origins for development. In production, specify your app's origin: e.g., "http://localhost:60847"
-header("Access-Control-Allow-Methods:  POST, OPTIONS"); // Crucial: Add POST and OPTIONS methods
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS"); // Crucial: Add POST and OPTIONS methods
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With"); // Allow Content-Type, Authorization, and X-Requested-With headers
 header("Access-Control-Max-Age: 3600"); // Cache preflight requests for 1 hour
 header("Access-Control-Allow-Credentials: true");
+header('Content-Type: application/json');
 
 
+
+// Only Gestionnaire can add subjects.
+
+
+
+// Check if the request method is POST
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
 // Initialize an empty response array
 $response = [];
 
 // Get user data from JWT token
 $userData = verifyJwtToken(); // $userData = ['userID', 'username', 'role']
-$allowedRoles = ['Gestionnaire']; // Only Gestionnaire can add subjects.
-
+$allowedRoles = ['Gestionnaire']; 
 // Check if the user has the allowed role
 if (!in_array($userData['role'], $allowedRoles)) {
     http_response_code(403); // Forbidden
@@ -31,10 +37,6 @@ if (!in_array($userData['role'], $allowedRoles)) {
     $mysqli->close();
     exit();
 }
-
-// Check if the request method is POST
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
     // Decode JSON input from the request body (Flutter sends JSON in the body)
     $input = json_decode(file_get_contents('php://input'), true);
 

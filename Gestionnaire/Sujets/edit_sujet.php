@@ -7,11 +7,12 @@
 // 2. Include other necessary files
 require_once '../../db_connect.php';
 require_once '../../verify_token.php';
+header('Content-Type: application/json');   
 
-header("Access-Control-Allow-Origin: *"); // Allow all origins for development. In production, specify your app's origin: e.g., "http://localhost:60847"
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS"); // Crucial: Add POST and OPTIONS methods
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With"); // Allow Content-Type, Authorization, and X-Requested-With headers
-header("Access-Control-Max-Age: 3600"); // Cache preflight requests for 1 hour
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: PUT, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Credentials: true");
 
 // Handle OPTIONS requests (pre-flight checks)
