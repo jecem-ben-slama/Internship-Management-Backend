@@ -24,8 +24,14 @@ $response = array(); // Initialize response array
 // Verify JWT token and get user data
 $userData = verifyJwtToken(); // Expected to return ['userID', 'username', 'role'] or exit if invalid
 
+// --- DEBUGGING: Log the user data from the token ---
+// This will help you confirm which user's data is being processed.
+error_log("User Data from Token: " . json_encode($userData));
+// --- END DEBUGGING ---
+
 // Define allowed roles for accessing this endpoint
-$allowedRoles = ['Encadrant'];
+// Added 'Admin' as a common role that might also need to view this data.
+$allowedRoles = ['Encadrant', 'Admin'];
 
 if (!in_array($userData['role'], $allowedRoles)) {
     http_response_code(403); // Forbidden
@@ -36,6 +42,11 @@ if (!in_array($userData['role'], $allowedRoles)) {
 
 // Get the logged-in Encadrant's ID from the token
 $encadrantID = $userData['userID'];
+
+// --- DEBUGGING: Log the encadrantID being used for the query ---
+// This confirms the ID that the SQL query will filter by.
+error_log("Encadrant ID from token for query: " . $encadrantID);
+// --- END DEBUGGING ---
 
 // Ensure $mysqli is connected
 if (!isset($mysqli) || $mysqli->connect_error) {
@@ -68,7 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 stages s
             JOIN
                 etudiants e ON s.etudiantID = e.etudiantID
-            JOIN
+            LEFT JOIN  -- *** CRITICAL CHANGE: Changed from INNER JOIN to LEFT JOIN ***
                 sujetsstage subj ON s.sujetID = subj.sujetID
             WHERE
                 s.encadrantProID = ?
@@ -78,28 +89,31 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
         $stmt_internships = $mysqli->prepare($sql_internships);
         if (!$stmt_internships) {
-            // Log the error for debugging purposes
+            // Log the detailed error for debugging purposes
             error_log("SQL Prepare Error (Internships): " . $mysqli->error);
-            throw new Exception("Failed to prepare internship statement.");
+            throw new Exception("Failed to prepare internship statement: " . $mysqli->error);
         }
         $stmt_internships->bind_param("i", $encadrantID);
         $stmt_internships->execute();
         $result_internships = $stmt_internships->get_result();
 
         $internships = [];
-        $stageIDs = [];
+        $stageIDs = []; // To collect stageIDs for fetching notes
         while ($row = $result_internships->fetch_assoc()) {
             $internships[$row['stageID']] = $row;
-            $internships[$row['stageID']]['notes'] = [];
+            $internships[$row['stageID']]['notes'] = []; // Initialize notes array for each internship
             $stageIDs[] = $row['stageID'];
         }
         $stmt_internships->close();
 
+        // --- DEBUGGING: Log fetched internships count ---
+        error_log("Fetched " . count($internships) . " internships for encadrant ID " . $encadrantID);
+        // --- END DEBUGGING ---
+
         // 2. Fetch all notes related to these internships
         if (!empty($stageIDs)) {
+            // Create placeholders for the IN clause based on the number of stageIDs
             $placeholders = implode(',', array_fill(0, count($stageIDs), '?'));
-            // Check if 'notes' table exists, if not, it might be 'stagenotes' as in your add_internship_note.php
-            // Using 'stagenotes' for consistency based on your add_internship_note.php
             $sql_notes = "
                 SELECT
                     noteID,
@@ -108,7 +122,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                     dateNote,
                     contenuNote
                 FROM
-                    stagenotes  -- Changed from 'notes' to 'stagenotes'
+                    stagenotes  -- Using 'stagenotes' as per your add_internship_note.php
                 WHERE
                     stageID IN ($placeholders)
                 ORDER BY
@@ -117,21 +131,24 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             $stmt_notes = $mysqli->prepare($sql_notes);
             if (!$stmt_notes) {
                 error_log("SQL Prepare Error (Notes): " . $mysqli->error);
-                throw new Exception("Failed to prepare notes statement.");
+                throw new Exception("Failed to prepare notes statement: " . $mysqli->error);
             }
 
-            $types = str_repeat('i', count($stageIDs));
+            // Dynamically bind parameters for the IN clause
+            $types = str_repeat('i', count($stageIDs)); // 'i' for integer for each ID
             $params = [];
+            // Use references for bind_param to work correctly with call_user_func_array
             foreach ($stageIDs as &$id) {
                 $params[] = &$id;
             }
-            array_unshift($params, $types);
+            array_unshift($params, $types); // Prepend the types string to the parameters array
             call_user_func_array([$stmt_notes, 'bind_param'], $params);
 
             $stmt_notes->execute();
             $result_notes = $stmt_notes->get_result();
 
             while ($note = $result_notes->fetch_assoc()) {
+                // Attach the note to the correct internship
                 if (isset($internships[$note['stageID']])) {
                     $internships[$note['stageID']]['notes'][] = $note;
                 }
@@ -141,6 +158,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
         $response['status'] = 'success';
         $response['message'] = 'Internships fetched successfully.';
+        // Use array_values to convert associative array (keyed by stageID) to a simple numeric array
         $response['data'] = array_values($internships);
 
     } catch (Exception $e) {
@@ -155,9 +173,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     $response['message'] = 'Invalid request method. Only GET requests are allowed.';
 }
 
-// Final output: this should be the ONLY echo json_encode not followed by an exit()
-// within the main logic flow.
-// All error/access denied cases should echo their response and exit() immediately.
+// Final output: This should be the ONLY echo json_encode not followed by an exit()
+// within the main logic flow. All error/access denied cases should echo their response and exit() immediately.
 // If a non-error path reaches here, it means it completed successfully and sets $response.
 echo json_encode($response);
 

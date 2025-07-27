@@ -4,15 +4,16 @@ require_once '../db_connect.php';
 require_once '../verify_token.php';
 
 // PHPMailer Autoload (assuming you installed it via Composer in your 'backend' folder)
+/* 
+ */
 require '../vendor/autoload.php';
 
 // Include your custom mailer utility
-require_once 'send_email.php'; // Adjust path if send_email.php is in a different directory
+require_once '../send_email.php'; // Adjust path if send_email.php is in a different directory
 
 // Import PHPMailer classes into the global namespace - still needed here if you access PHPMailer constants directly
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-
 // CORS headers - crucial for Flutter Web
 header("Access-Control-Allow-Origin: *"); // Allow all origins for development
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -108,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] == "PUT") {
                         $row = $emailResult->fetch_assoc();
                         $studentEmail = $row['email'];
                         $studentName = trim($row['studentUsername'] . ' ' . $row['studentLastname']);
-                        $subjectTitle = $row['subjectTitle'];
+                        $subjectTitle = $row['subjectTitle']??'N/A';
 
                         // Call the new function to send email
                         $emailSendResult = sendInternshipAcceptanceEmail($studentEmail, $studentName, $subjectTitle);

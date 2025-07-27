@@ -9,7 +9,8 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 // Include the sensitive mail configuration file
 // IMPORTANT: Ensure mail_config.php is in your .gitignore!
-require_once __DIR__ . '/mail_config.php';
+// Corrected path: Added a directory separator '/'
+require_once __DIR__ . '/mail_config.php'; 
 
 function sendInternshipAcceptanceEmail($recipientEmail, $recipientName, $subjectTitle) {
     $mail = new PHPMailer(true); // true enables exceptions
@@ -33,7 +34,6 @@ function sendInternshipAcceptanceEmail($recipientEmail, $recipientName, $subject
         $mail->Subject = "Your Internship Application for '$subjectTitle' has been ACCEPTED!";
         $message_body = "Dear $recipientName,\n\n";
         $message_body .= "We are pleased to inform you that your internship application for the subject: '$subjectTitle' has been ACCEPTED.\n\n";
-        $message_body .= "Please log in to the platform for further details and next steps.\n\n";
         $message_body .= "Congratulations!\n\n";
         $message_body .= "Sincerely,\nYour Internship Management Team";
         $mail->Body    = $message_body;

@@ -81,16 +81,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($stmt_check->num_rows == 0) {
         http_response_code(403);
         echo json_encode(['status' => 'error', 'message' => 'You are not assigned to this internship or it does not exist.']);
-        $stmt_check->close(); // This close is fine, as it's an early exit path
+        $stmt_check->close();
         $mysqli->close();
         exit();
     }
-    $stmt_check->close(); // Close here after its use
+    $stmt_check->close();
 
     // Initialize statements to null so finally block can safely check them
     $stmt_eval = null;
     $stmt_update_stage = null;
-    $retrieved_evaluationID = null; // <-- NEW: Variable to store existing evaluation ID
+    $retrieved_evaluationID = null; // Variable to store existing evaluation ID
 
     // Start a transaction
     $mysqli->begin_transaction();
@@ -108,7 +108,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_check_eval->execute();
         $stmt_check_eval->store_result();
 
-        // NEW: Bind result to retrieve evaluationID if it exists
         if ($stmt_check_eval->num_rows > 0) {
             $stmt_check_eval->bind_result($retrieved_evaluationID);
             $stmt_check_eval->fetch();
@@ -116,7 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $evaluationExists = false;
         }
-        $stmt_check_eval->close(); // Close this check statement here as its purpose is done
+        $stmt_check_eval->close();
 
         $dateEvaluation = date('Y-m-d'); // Current date for evaluation
 
@@ -127,6 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $sql_eval = "UPDATE evaluations SET dateEvaluation = ?, note = ?, commentaires = ? WHERE stageID = ? AND encadrantID = ?";
                 $stmt_eval = $mysqli->prepare($sql_eval);
                 if (!$stmt_eval) throw new mysqli_sql_exception('Database error preparing update evaluation: ' . $mysqli->error);
+                // Correct bind_param for UPDATE: s (date), d (note), s (commentaires), i (stageID), i (encadrantID)
                 $stmt_eval->bind_param("sdsii", $dateEvaluation, $note, $commentaires, $stageID, $encadrantID);
                 $message = "Internship evaluation updated to Validé!";
             } else {
@@ -134,7 +134,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $sql_eval = "INSERT INTO evaluations (stageID, encadrantID, dateEvaluation, note, commentaires) VALUES (?, ?, ?, ?, ?)";
                 $stmt_eval = $mysqli->prepare($sql_eval);
                 if (!$stmt_eval) throw new mysqli_sql_exception('Database error preparing insert evaluation: ' . $mysqli->error);
-                $stmt_eval->bind_param("iissd", $stageID, $encadrantID, $dateEvaluation, $note, $commentaires);
+                // FIX: Correct bind_param for INSERT: i (stageID), i (encadrantID), s (date), d (note), s (commentaires)
+                $stmt_eval->bind_param("iisds", $stageID, $encadrantID, $dateEvaluation, $note, $commentaires);
                 $message = "Internship evaluated and Validated!";
             }
         } else if ($actionType === 'unvalidate') {
@@ -170,7 +171,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (!$evaluationExists) {
                     $response['evaluationID'] = $stmt_eval->insert_id; // For new inserts
                 } else {
-                    $response['evaluationID'] = $retrieved_evaluationID; // <-- Use the ID fetched earlier for updates
+                    $response['evaluationID'] = $retrieved_evaluationID; // Use the ID fetched earlier for updates
                 }
             } else if ($actionType === 'unvalidate') {
                 // If unvalidating, and an evaluation existed, return its ID or null if it was deleted
@@ -228,4 +229,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 $mysqli->close();
 exit();
-?>
