@@ -1,16 +1,26 @@
 <?php
 // backend/Gestionnaire/get_internship_distribution.php
 
+// Enable error reporting for debugging (REMOVE IN PRODUCTION)
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Start output buffering to catch any premature output
+ob_start();
+
 require_once '../db_connect.php';
 require_once '../verify_token.php';
 
+// CORS headers - crucial for Flutter Web
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Credentials: true");
 
+// Handle preflight OPTIONS requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    ob_end_clean(); // Clean any output buffer before sending headers
     http_response_code(200);
     exit();
 }
@@ -18,12 +28,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 header('Content-Type: application/json');
 $response = array();
 
-$userData = verifyJwtToken(); // Get user data from JWT
+// Verify JWT token and get user data
+$userData = verifyJwtToken(); // Expected to return ['userID', 'username', 'role'] or exit if invalid
+
+// Define allowed roles for accessing this endpoint
 $allowedRoles = ['Gestionnaire']; // Only Gestionnaire can access this
 
 if (!in_array($userData['role'], $allowedRoles)) {
+    ob_end_clean(); // Clean any output buffer
     http_response_code(403);
     echo json_encode(['status' => 'error', 'message' => 'Access denied. Only ' . implode(', ', $allowedRoles) . ' can view internship distributions.']);
+    exit();
+}
+
+// Ensure $mysqli is connected before proceeding with database operations
+if (!isset($mysqli) || $mysqli->connect_error) {
+    ob_end_clean();
+    http_response_code(500);
+    $response = ['status' => 'error', 'message' => 'Database connection failed: ' . ($mysqli->connect_error ?? 'Unknown error')];
+    echo json_encode($response);
     exit();
 }
 
@@ -172,39 +195,47 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $stmt_encadrant->close();
     }
 
-    // --- 5. Faculty Distribution (CORRECTED) ---
-    // Assuming 'nomFaculte' is a column directly in the 'etudiants' table.
-    $sql_faculty = "
+    // --- 5. Faculty Internship and Student Summary (ENHANCED) ---
+    $sql_faculty_summary = "
         SELECT
-            etu.nomFaculte AS facultyName, -- Assuming the column is named 'nomFaculte'
-            COUNT(s.stageID) AS count
+            etu.nomFaculte AS facultyName,
+            COUNT(DISTINCT etu.etudiantID) AS totalStudents,
+            COUNT(s.stageID) AS totalInternships,
+            COUNT(CASE WHEN s.statut = 'Validé' THEN s.stageID ELSE NULL END) AS validatedInternships
         FROM
-            stages s
-        JOIN
-            etudiants etu ON s.etudiantID = etu.etudiantID
+            etudiants etu
+        LEFT JOIN -- Use LEFT JOIN to include faculties even if they have no internships
+            stages s ON etu.etudiantID = s.etudiantID
         WHERE
             etu.nomFaculte IS NOT NULL AND etu.nomFaculte != '' -- Exclude null/empty faculty names
         GROUP BY
             etu.nomFaculte
         ORDER BY
-            count DESC;
+            totalInternships DESC;
     ";
-    $stmt_faculty = $mysqli->prepare($sql_faculty);
-    if (!$stmt_faculty) {
-        error_log("Database error (faculty distribution): " . $mysqli->error);
-        $allDistributions['faculty_distribution'] = [];
+    $stmt_faculty_summary = $mysqli->prepare($sql_faculty_summary);
+    if (!$stmt_faculty_summary) {
+        error_log("Database error (faculty summary): " . $mysqli->error);
+        $allDistributions['faculty_internship_summary'] = [];
     } else {
-        $stmt_faculty->execute();
-        $result_faculty = $stmt_faculty->get_result();
-        $faculty_distribution = [];
-        while ($row = $result_faculty->fetch_assoc()) {
-            $faculty_distribution[] = [
+        $stmt_faculty_summary->execute();
+        $result_faculty_summary = $stmt_faculty_summary->get_result();
+        $faculty_internship_summary = [];
+        while ($row = $result_faculty_summary->fetch_assoc()) {
+            $totalInternships = (int)$row['totalInternships'];
+            $validatedInternships = (int)$row['validatedInternships'];
+            $successRate = ($totalInternships > 0) ? round(($validatedInternships / $totalInternships) * 100, 2) : 0.00;
+
+            $faculty_internship_summary[] = [
                 'facultyName' => $row['facultyName'],
-                'count' => (int)$row['count'],
+                'totalStudents' => (int)$row['totalStudents'],
+                'totalInternships' => $totalInternships,
+                'validatedInternships' => $validatedInternships,
+                'successRate' => $successRate, // Percentage
             ];
         }
-        $allDistributions['faculty_distribution'] = $faculty_distribution;
-        $stmt_faculty->close();
+        $allDistributions['faculty_internship_summary'] = $faculty_internship_summary;
+        $stmt_faculty_summary->close();
     }
 
     // --- 6. Subject Distribution ---
@@ -239,12 +270,13 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $stmt_subject->close();
     }
 
-
+    ob_end_clean(); // Clean any output buffer before final JSON output
     $response['status'] = 'success';
     $response['data'] = $allDistributions;
     echo json_encode($response);
 
 } else {
+    ob_end_clean(); // Clean any output buffer
     http_response_code(405);
     $response['status'] = 'error';
     $response['message'] = 'Invalid request method. Only GET requests are allowed.';

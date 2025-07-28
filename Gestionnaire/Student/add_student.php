@@ -76,7 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($input['username'] ?? '');
     $lastname = trim($input['lastname'] ?? ''); 
     $email = trim($input['email'] ?? '');
-    $CIN = $input['CIN'] ?? '';
+    $cin = $input['cin'] ?? '';
     $niveau_etude = $input['niveau_etude'] ?? '';
     $faculte = $input['faculte'] ?? '';
     $cycle = $input['cycle'] ?? '';
@@ -84,10 +84,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
     // --- Input Validation for the NEW Student's Data ---
-    if (empty($username) || empty($email) || empty($CIN) || empty($lastname)) { 
+    if (empty($username) || empty($email) || empty($cin) || empty($lastname)) { 
         http_response_code(400); // Bad Request
         $response['status'] = 'error';
-        $response['message'] = 'Username, last name, email, and CIN are required.'; 
+        $response['message'] = 'Username, last name, email, and cin are required.'; 
         echo json_encode($response);
         $mysqli->close();
         exit();
@@ -130,18 +130,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    // --- Check if CIN already exists in the Students table ---
-    $sql_check_CIN = "SELECT etudiantID FROM etudiants WHERE CIN = ?";
-    if ($stmt_check = $mysqli->prepare($sql_check_CIN)) {
-        $stmt_check->bind_param("s", $param_CIN_check); 
-        $param_CIN_check = $CIN;
+    // --- Check if cin already exists in the Students table ---
+    $sql_check_cin = "SELECT etudiantID FROM etudiants WHERE cin = ?";
+    if ($stmt_check = $mysqli->prepare($sql_check_cin)) {
+        $stmt_check->bind_param("s", $param_cin_check); 
+        $param_cin_check = $cin;
         $stmt_check->execute();
         $stmt_check->store_result();
 
         if ($stmt_check->num_rows > 0) {
             http_response_code(409); // Conflict
             $response['status'] = 'error';
-            $response['message'] = 'This CIN is already registered for a student.';
+            $response['message'] = 'This cin is already registered for a student.';
             echo json_encode($response);
             $stmt_check->close();
             $mysqli->close();
@@ -151,22 +151,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         http_response_code(500); // Internal Server Error
         $response['status'] = 'error';
-        $response['message'] = 'Database error checking existing CIN: ' . $mysqli->error;
+        $response['message'] = 'Database error checking existing cin: ' . $mysqli->error;
         echo json_encode($response);
         $mysqli->close();
         exit();
     }
 
 
-    $sql_insert = "INSERT INTO etudiants (username, lastname, email, CIN, niveauEtude, nomFaculte, cycle, specialite) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql_insert = "INSERT INTO etudiants (username, lastname, email, cin, niveauEtude, nomFaculte, cycle, specialite) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     if ($stmt_insert = $mysqli->prepare($sql_insert)) {
-        $stmt_insert->bind_param("ssssssss", $param_username, $param_lastname, $param_email, $param_CIN, $param_niveauEtude, $param_nomFaculte, $param_cycle, $param_specialite);
+        $stmt_insert->bind_param("ssssssss", $param_username, $param_lastname, $param_email, $param_cin, $param_niveauEtude, $param_nomFaculte, $param_cycle, $param_specialite);
 
         $param_username = $username;
         $param_lastname = $lastname; 
         $param_email = $email;
-        $param_CIN = $CIN;
+        $param_cin = $cin;
         $param_niveauEtude = $niveau_etude;
         $param_nomFaculte = $faculte;
         $param_cycle = $cycle;

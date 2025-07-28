@@ -54,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     try {
         // 1. Check if an attestation already exists for this stageID
-        $sql_check_attestation = "SELECT attestationID, qrCodeData FROM attestation WHERE stageID = ?";
+        $sql_check_attestation = "SELECT attestationID FROM attestationsstage WHERE stageID = ?"; // Only need attestationID to check existence
         $stmt_check = $mysqli->prepare($sql_check_attestation);
         if (!$stmt_check) {
             throw new mysqli_sql_exception('Database error preparing attestation check: ' . $mysqli->error);
@@ -64,36 +64,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_check->store_result();
 
         $existingAttestationID = null;
-        $existingQrCodeData = null;
 
         if ($stmt_check->num_rows > 0) {
-            $stmt_check->bind_result($existingAttestationID, $existingQrCodeData);
+            $stmt_check->bind_result($existingAttestationID); // Bind only attestationID
             $stmt_check->fetch();
-            // If attestation already exists, return its details
-            $response = [
-                'status' => 'info',
-                'message' => 'Attestation already generated for this internship.',
-                'attestationID' => $existingAttestationID,
-                'qrCodeData' => $existingQrCodeData
-            ];
-            http_response_code(200);
-            $stmt_check->close();
-            $mysqli->commit(); // Commit the transaction even if no new data was inserted
+            $stmt_check->close(); // Close stmt_check here
+
+            // Attestation already exists, fetch its full details
+            $fullAttestationData = fetchAttestationDataForStageID($mysqli, $stageID);
+
+            if ($fullAttestationData) {
+                 $response = [
+                    'status' => 'info',
+                    'message' => 'Attestation already generated for this internship.',
+                    'data' => $fullAttestationData // **THIS IS THE CRUCIAL CHANGE for 'info' status**
+                ];
+                http_response_code(200);
+            } else {
+                 http_response_code(500);
+                 $response = [
+                    'status' => 'error',
+                    'message' => 'Attestation exists but failed to retrieve full data for existing stageID: ' . $stageID
+                ];
+            }
+            $mysqli->commit();
             echo json_encode($response);
             exit();
         }
-        $stmt_check->close();
+        $stmt_check->close(); // Ensure it's closed if num_rows is 0 too.
 
         // 2. Insert new attestation record
         $dateGeneration = date('Y-m-d');
-        $sql_insert_attestation = "INSERT INTO attestation (stageID, dateGeneration, qrCodeData) VALUES (?, ?, ?)";
+        $sql_insert_attestation = "INSERT INTO attestationsstage (stageID, dateGeneration, qrCodeData) VALUES (?, ?, ?)";
         $stmt_insert = $mysqli->prepare($sql_insert_attestation);
         if (!$stmt_insert) {
             throw new mysqli_sql_exception('Database error preparing attestation insert: ' . $mysqli->error);
         }
 
-        // Placeholder for qrCodeData initially, will be updated after insert_id
-        $tempQrCodeData = ''; // Will be replaced
+        $tempQrCodeData = '';
         $stmt_insert->bind_param("iss", $stageID, $dateGeneration, $tempQrCodeData);
 
         if (!$stmt_insert->execute()) {
@@ -104,15 +112,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_insert->close();
 
         // 3. Generate the QR Code URL
-        // IMPORTANT: Replace 'YOUR_APP_BASE_URL' with the actual base URL of your Flutter web app
-        // For example: 'https://yourdomain.com/attestation' or 'http://localhost:XXXX/attestation'
-        // This URL should point to a public endpoint in your Flutter app that can handle deep links
-        // or a simple PHP endpoint that redirects/serves the attestation.
-        $qrCodeBaseUrl = "http://localhost/your_flutter_app_base_url_path/attestation_viewer"; // Example: http://localhost:XXXX/#/attestation_viewer
+        $qrCodeBaseUrl = "http://localhost:51891/#/attestation_viewer"; // Confirm this port and hash
         $qrCodeData = "$qrCodeBaseUrl?attestationID=$newAttestationID";
 
         // 4. Update the attestation record with the generated QR code data
-        $sql_update_qr = "UPDATE attestation SET qrCodeData = ? WHERE attestationID = ?";
+        $sql_update_qr = "UPDATE attestationsstage SET qrCodeData = ? WHERE attestationID = ?";
         $stmt_update = $mysqli->prepare($sql_update_qr);
         if (!$stmt_update) {
             throw new mysqli_sql_exception('Database error preparing QR update: ' . $mysqli->error);
@@ -125,13 +129,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $mysqli->commit();
 
-        $response = [
-            'status' => 'success',
-            'message' => 'Attestation generated successfully.',
-            'attestationID' => $newAttestationID,
-            'qrCodeData' => $qrCodeData
-        ];
-        http_response_code(200);
+        // Fetch the complete attestation data after successful generation and QR update
+        $fullAttestationData = fetchAttestationDataForStageID($mysqli, $stageID);
+
+        if ($fullAttestationData) {
+            $response = [
+                'status' => 'success',
+                'message' => 'Attestation generated successfully.',
+                'data' => $fullAttestationData // Consistently return full data under 'data' key
+            ];
+            http_response_code(200);
+        } else {
+            http_response_code(500);
+            $response = ['status' => 'error', 'message' => 'Attestation generated but failed to retrieve full data.'];
+        }
 
     } catch (Exception $e) {
         $mysqli->rollback();
@@ -140,7 +151,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         error_log("Error (Generate Attestation - Transaction Failed): Message: " . $e->getMessage());
         $response['message'] = 'An unexpected error occurred: ' . $e->getMessage();
     } finally {
-        if (isset($stmt_check) && $stmt_check !== null) $stmt_check->close();
+        // Ensure all statements are closed
+        if (isset($stmt_check) && $stmt_check !== null && $stmt_check->num_rows > 0) $stmt_check->close(); // Only close if it was opened and used
         if (isset($stmt_insert) && $stmt_insert !== null) $stmt_insert->close();
         if (isset($stmt_update) && $stmt_update !== null) $stmt_update->close();
     }
@@ -154,4 +166,88 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 echo json_encode($response);
 $mysqli->close();
 exit();
+
+// Helper function to fetch full attestation data based on stageID
+function fetchAttestationDataForStageID($mysqli, $stageID) {
+    $sql = "
+        SELECT
+            at.attestationID, at.dateGeneration, at.qrCodeData,
+            s.stageID, s.typeStage, s.dateDebut, s.dateFin, s.statut, s.estRemunere, s.montantRemuneration,
+            e.etudiantID, e.username AS studentFirstName, e.lastname AS studentLastName, e.email AS studentEmail,
+            su.sujetID, su.titre AS subjectTitle, su.description AS subjectDescription,
+            u.userID AS encadrantID, u.username AS encadrantFirstName, u.lastname AS encadrantLastName, u.email AS encadrantEmail,
+            ev.evaluationID, ev.note, ev.commentaires, ev.dateEvaluation
+        FROM attestationsstage at
+        JOIN stages s ON at.stageID = s.stageID
+        JOIN etudiants e ON s.etudiantID = e.etudiantID
+        LEFT JOIN sujetsstage su ON s.sujetID = su.sujetID
+        LEFT JOIN users u ON s.encadrantProID = u.userID
+        JOIN evaluations ev ON s.stageID = ev.stageID AND s.encadrantProID = ev.encadrantID
+        WHERE at.stageID = ? AND s.statut = 'Terminé' AND ev.note IS NOT NULL
+    ";
+
+    $stmt = $mysqli->prepare($sql);
+    if (!$stmt) {
+        error_log('Database error preparing full attestation data fetch: ' . $mysqli->error);
+        return null;
+    }
+
+    $stmt->bind_param("i", $stageID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+
+        $studentFirstName = $row['studentFirstName'] ?? null;
+        $studentLastName = $row['studentLastName'] ?? null;
+        $encadrantFirstName = $row['encadrantFirstName'] ?? null;
+        $encadrantLastName = $row['encadrantLastName'] ?? null;
+        $subjectTitle = $row['subjectTitle'] ?? null;
+        $subjectDescription = $row['subjectDescription'] ?? null;
+        $encadrantEmail = $row['encadrantEmail'] ?? null;
+        $montantRemuneration = $row['montantRemuneration'] !== null ? (float)$row['montantRemuneration'] : null;
+
+
+        return [
+            'attestationID' => $row['attestationID'],
+            'dateGeneration' => $row['dateGeneration'],
+            'qrCodeData' => $row['qrCodeData'],
+
+            'internship' => [
+                'stageID' => $row['stageID'],
+                'typeStage' => $row['typeStage'],
+                'dateDebut' => $row['dateDebut'],
+                'dateFin' => $row['dateFin'],
+                'statut' => $row['statut'],
+                'estRemunere' => (bool)$row['estRemunere'],
+                'montantRemuneration' => $montantRemuneration,
+            ],
+            'student' => [
+                'studentID' => $row['etudiantID'],
+                'firstName' => $studentFirstName,
+                'lastName' => $studentLastName,
+                'email' => $row['studentEmail'],
+            ],
+            'subject' => [
+                'subjectID' => $row['sujetID'],
+                'title' => $subjectTitle,
+                'description' => $subjectDescription,
+            ],
+            'supervisor' => [
+                'supervisorID' => $row['encadrantID'],
+                'firstName' => $encadrantFirstName,
+                'lastName' => $encadrantLastName,
+                'email' => $encadrantEmail,
+            ],
+            'evaluation' => [
+                'evaluationID' => $row['evaluationID'],
+                'note' => (float)$row['note'],
+                'comments' => $row['commentaires'],
+                'dateEvaluation' => $row['dateEvaluation'],
+            ]
+        ];
+    }
+    return null;
+}
 ?>
