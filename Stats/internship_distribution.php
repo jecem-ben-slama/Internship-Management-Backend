@@ -270,6 +270,64 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $stmt_subject->close();
     }
 
+    // --- 7. Total Financial Expenses (from stages.montantRemuneration) ---
+    $sql_total_expenses = "
+        SELECT
+            SUM(montantRemuneration) AS totalExpenses
+        FROM
+            stages
+        WHERE
+            estRemunere = 1
+            AND montantRemuneration IS NOT NULL;
+    ";
+    $stmt_total_expenses = $mysqli->prepare($sql_total_expenses);
+    if (!$stmt_total_expenses) {
+        error_log("Database error (total expenses): " . $mysqli->error);
+        $allDistributions['total_financial_expenses'] = 0.00;
+    } else {
+        $stmt_total_expenses->execute();
+        $result_total_expenses = $stmt_total_expenses->get_result();
+        $expenses_data = $result_total_expenses->fetch_assoc();
+        $totalExpenses = (float)($expenses_data['totalExpenses'] ?? 0.00);
+        $allDistributions['total_financial_expenses'] = $totalExpenses;
+        $stmt_total_expenses->close();
+    }
+
+    // --- NEW: 8. Total Amount Paid by Year (from stages.montantRemuneration and dateDebut) ---
+    $sql_annual_expenses = "
+        SELECT
+            YEAR(dateDebut) AS year,
+            SUM(montantRemuneration) AS annualExpenses
+        FROM
+            stages
+        WHERE
+            estRemunere = 1
+            AND montantRemuneration IS NOT NULL
+            AND dateDebut IS NOT NULL
+        GROUP BY
+            YEAR(dateDebut)
+        ORDER BY
+            year ASC;
+    ";
+    $stmt_annual_expenses = $mysqli->prepare($sql_annual_expenses);
+    if (!$stmt_annual_expenses) {
+        error_log("Database error (annual expenses): " . $mysqli->error);
+        $allDistributions['annual_financial_expenses'] = [];
+    } else {
+        $stmt_annual_expenses->execute();
+        $result_annual_expenses = $stmt_annual_expenses->get_result();
+        $annual_expenses_data = [];
+        while ($row = $result_annual_expenses->fetch_assoc()) {
+            $annual_expenses_data[] = [
+                'year' => (int)$row['year'],
+                'annualExpenses' => (float)$row['annualExpenses'],
+            ];
+        }
+        $allDistributions['annual_financial_expenses'] = $annual_expenses_data;
+        $stmt_annual_expenses->close();
+    }
+
+
     ob_end_clean(); // Clean any output buffer before final JSON output
     $response['status'] = 'success';
     $response['data'] = $allDistributions;

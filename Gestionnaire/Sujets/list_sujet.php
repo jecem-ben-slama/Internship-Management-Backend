@@ -32,13 +32,16 @@ if (!in_array($userData['role'], $allowedRoles)) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
-    // SQL query to fetch all subjects
-    $sql = "SELECT sujetID, titre, description FROM sujetsstage ORDER BY sujetID DESC";
+    // SQL query to fetch all subjects, NOW INCLUDING pdfUrl
+    $sql = "SELECT sujetID, titre, description, pdfUrl FROM sujetsstage ORDER BY sujetID DESC";
 
     if ($result = $mysqli->query($sql)) {
         $sujets = array();
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
+                // Ensure pdfUrl is always treated as a string, even if NULL in DB
+                // PHP's fetch_assoc() will return NULL if the DB value is NULL
+                $row['pdfUrl'] = $row['pdfUrl'] ?? null;
                 $sujets[] = $row;
             }
             $response['status'] = 'success';

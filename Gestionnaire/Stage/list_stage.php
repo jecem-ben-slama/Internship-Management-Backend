@@ -26,7 +26,7 @@ $userData = verifyJwtToken(); // Expected to return ['userID', 'username', 'role
 
 // Define allowed roles for accessing this endpoint
 // ChefCentreInformatique should be added here to allow them to fetch stages (e.g., pending)
-$allowedRoles = ['Gestionnaire', 'Encadrant', 'ChefCentreInformatique']; // ADD ChefCentreInformatique
+$allowedRoles = ['Gestionnaire', 'Encadrant', 'ChefCentreInformatique', 'EncadrantAcademique']; // ADD ChefCentreInformatique AND EncadrantAcademique
 
 if (!in_array($userData['role'], $allowedRoles)) {
     http_response_code(403); // Forbidden
@@ -58,7 +58,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             s.encadrantProID,
             sup.username AS supervisorUsername,
             sup.lastname AS supervisorLastname,
-            s.chefCentreValidationID
+            s.encadrantAcademiqueID, -- NEW: Select encadrantAcademiqueID
+            acad.username AS academicSupervisorUsername, -- NEW: Select academic supervisor's username
+            acad.lastname AS academicSupervisorLastname -- NEW: Select academic supervisor's lastname
         FROM
             stages s
         LEFT JOIN
@@ -67,6 +69,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             sujetsstage sub ON s.sujetID = sub.sujetID
         LEFT JOIN
             users sup ON s.encadrantProID = sup.userID
+        LEFT JOIN
+            users acad ON s.encadrantAcademiqueID = acad.userID -- NEW: Join for academic supervisor details
     ";
 
     $whereClauses = [];
@@ -116,11 +120,21 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         while ($row = $result->fetch_assoc()) {
             $row['studentName'] = trim($row['studentUsername'] . ' ' . $row['studentLastname']);
             $row['supervisorName'] = trim($row['supervisorUsername'] . ' ' . $row['supervisorLastname']);
+            // NEW: Add academic supervisor name
+            $row['academicSupervisorName'] = trim($row['academicSupervisorUsername'] . ' ' . $row['academicSupervisorLastname']);
+            // If academic supervisor is null, ensure the name is also null or empty string
+            if (empty(trim($row['academicSupervisorName']))) {
+                $row['academicSupervisorName'] = null;
+            }
+
 
             unset($row['studentUsername']);
             unset($row['studentLastname']);
             unset($row['supervisorUsername']);
             unset($row['supervisorLastname']);
+            // NEW: Unset academic supervisor username and lastname
+            unset($row['academicSupervisorUsername']);
+            unset($row['academicSupervisorLastname']);
 
             $stages[] = $row;
         }

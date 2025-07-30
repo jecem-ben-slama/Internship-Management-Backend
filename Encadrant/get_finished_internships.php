@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             s.estRemunere,
             s.montantRemuneration,
             s.encadrantProID,
-            s.chefCentreValidationID AS stageChefCentreValidationID,
+            s.encadrantAcademiqueID AS stageChefCentreValidationID,
 
             etu.username AS studentFirstName,   -- Student's first name from etudiants
             etu.lastName AS studentLastName,     -- Student's last name from etudiants

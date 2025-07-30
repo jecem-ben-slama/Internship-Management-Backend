@@ -41,6 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $estRemunere = filter_var($input['estRemunere'] ?? null, FILTER_VALIDATE_INT);
     $montantRemuneration = isset($input['montantRemuneration']) ? filter_var($input['montantRemuneration'], FILTER_VALIDATE_FLOAT) : null;
     $encadrantProID = isset($input['encadrantProID']) ? filter_var($input['encadrantProID'], FILTER_VALIDATE_INT) : null;
+    $encadrantAcademiqueID = isset($input['encadrantAcademiqueID']) ? filter_var($input['encadrantAcademiqueID'], FILTER_VALIDATE_INT) : null;
 
     if (is_null($etudiantID) || empty($typeStage) || empty($dateDebut) || empty($dateFin) || is_null($estRemunere)) {
         http_response_code(400);
@@ -64,15 +65,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $sql = "INSERT INTO stages (
         etudiantID, sujetID, typeStage, dateDebut, dateFin,
-        statut, estRemunere, montantRemuneration, encadrantProID
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        statut, estRemunere, montantRemuneration, encadrantProID,encadrantAcademiqueID
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     if ($stmt = $mysqli->prepare($sql)) {
         // Default nulls if not provided
         $null = null;
 
         $stmt->bind_param(
-            "iissssidi",
+            "iissssidii",
             $etudiantID,
             $sujetID,
             $typeStage,
@@ -81,7 +82,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $statut,
             $estRemunere,
             $montantRemuneration,
-            $encadrantProID
+            $encadrantProID,
+            $encadrantAcademiqueID
         );
 
         try {

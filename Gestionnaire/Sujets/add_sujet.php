@@ -1,116 +1,123 @@
 <?php
-
-// 1. Include the CORS header file FIRST.
-//    Adjust this path if your cors.php is in a different directory.
-
-// 2. Include other necessary files
 require_once '../../db_connect.php';
 require_once '../../verify_token.php';
 
-header("Access-Control-Allow-Origin: *"); // Allow all origins for development. In production, specify your app's origin: e.g., "http://localhost:60847"
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS"); // Crucial: Add POST and OPTIONS methods
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With"); // Allow Content-Type, Authorization, and X-Requested-With headers
-header("Access-Control-Max-Age: 3600"); // Cache preflight requests for 1 hour
-header("Access-Control-Allow-Credentials: true");
+// Set CORS headers at the very beginning
+header("Access-Control-Allow-Origin: *"); // Allows requests from any origin. For production, specify your Flutter app's origin(s).
+header("Access-Control-Allow-Methods: POST, OPTIONS"); // Crucially, include OPTIONS here
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With"); // Allow these headers from the client
+header("Access-Control-Max-Age: 3600"); // Cache preflight response for 1 hour
+header("Access-Control-Allow-Credentials: true"); // Important if you use cookies/sessions/credentials
+
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    // Respond with 200 OK and exit for preflight requests
+    http_response_code(200);
+    exit(); // IMPORTANT: Exit here so the rest of the script (which expects POST data) doesn't run
+}
+
+// Ensure Content-Type is set for actual responses (for POST requests)
 header('Content-Type: application/json');
 
-
-
-// Only Gestionnaire can add subjects.
-
-
-
-// Check if the request method is POST
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-// Initialize an empty response array
-$response = [];
-
-// Get user data from JWT token
-$userData = verifyJwtToken(); // $userData = ['userID', 'username', 'role']
-$allowedRoles = ['Gestionnaire']; 
-// Check if the user has the allowed role
-if (!in_array($userData['role'], $allowedRoles)) {
-    http_response_code(403); // Forbidden
-    $response['status'] = 'error';
-    $response['message'] = 'Access denied. Only ' . implode('', $allowedRoles) . ' can add subjects.';
-    echo json_encode($response);
-    $mysqli->close();
+// Now, handle the actual POST request
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    http_response_code(405); // Method Not Allowed
+    echo json_encode(['status' => 'error', 'message' => 'Only POST requests are allowed.']);
     exit();
 }
-    // Decode JSON input from the request body (Flutter sends JSON in the body)
-    $input = json_decode(file_get_contents('php://input'), true);
 
-    // Fallback for form-urlencoded or if JSON decoding fails (less likely with Dio)
-    if (json_last_error() !== JSON_ERROR_NONE || empty($input)) {
-        $input = $_POST; // Use $_POST for form-urlencoded data
+// Verify token
+$userData = verifyJwtToken();
+$allowedRoles = ['Gestionnaire'];
+if (!in_array($userData['role'], $allowedRoles)) {
+    http_response_code(403); // Forbidden
+    echo json_encode(['status' => 'error', 'message' => 'Access denied. Only Gestionnaire can add subjects.']);
+    exit();
+}
+
+// Sanitize input
+// For multipart/form-data, $_POST and $_FILES are usually populated automatically.
+$titre = trim($_POST['titre'] ?? '');
+$description = trim($_POST['description'] ?? '');
+
+// Validate input
+if (empty($titre) || empty($description)) {
+    http_response_code(400); // Bad Request
+    echo json_encode(['status' => 'error', 'message' => 'Fields titre and description are required.']);
+    exit();
+}
+
+// Handle PDF upload
+// Make sure the directory exists and is writable by the web server
+$uploadDir = '../../Gestionnaire/Subjects/';
+// Check if upload directory exists, if not, try to create it
+if (!is_dir($uploadDir)) {
+    if (!mkdir($uploadDir, 0777, true)) { // Recursive and readable/writable by all (adjust permissions for production)
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Failed to create upload directory.']);
+        exit();
     }
+}
 
-    // Sanitize and get input values
-    $titre = trim($input['titre'] ?? '');
-    $description = trim($input['description'] ?? '');
+$baseUrl = 'http://localhost/Backend/Gestionnaire/Subjects/';
+$pdfUrl = null;
 
-    // Validate required fields
-    if (empty($titre) || empty($description)) {
-        $response['status'] = 'error';
-        $response['message'] = 'All fields (titre, description) are required for the new subject.';
-        echo json_encode($response);
-        $mysqli->close();
+if (isset($_FILES['pdfFile']) && $_FILES['pdfFile']['error'] === UPLOAD_ERR_OK) {
+    $fileTmpPath = $_FILES['pdfFile']['tmp_name'];
+    $fileName = basename($_FILES['pdfFile']['name']);
+    $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+    if ($fileExt !== 'pdf') {
+        http_response_code(400); // Bad Request
+        echo json_encode(['status' => 'error', 'message' => 'Only PDF files are allowed.']);
         exit();
     }
 
-    // Prepare the SQL INSERT statement
-    $sql = "INSERT INTO Sujetsstage (titre, description) VALUES (?, ?)";
+    // Create a unique file name to avoid overwriting
+    $newFileName = uniqid('pdf_', true) . '.' . $fileExt;
+    $destPath = $uploadDir . $newFileName;
 
-    if ($stmt = $mysqli->prepare($sql)) {
-        // Bind parameters
-        $stmt->bind_param("ss", $param_titre, $param_description);
-        $param_titre = $titre;
-        $param_description = $description;
-
-        try {
-            // Execute the statement
-            if ($stmt->execute()) {
-                $newSujetID = $mysqli->insert_id; // Get the ID of the newly inserted subject
-
-                $response['status'] = 'success';
-                $response['message'] = 'Subject added successfully!';
-                // Crucial: Return the full subject data under the 'data' key
-                $response['data'] = [
-                    'sujetID' => (string)$newSujetID, // Convert to string to match Flutter's fromJson handling
-                    'titre' => $titre,
-                    'description' => $description
-                ];
-            } else {
-                // If execution fails
-                $response['status'] = 'error';
-                $response['message'] = 'Database error during subject addition: ' . $stmt->error;
-            }
-        } catch (mysqli_sql_exception $e) {
-            // Catch specific database exceptions (e.g., duplicate entry)
-            $response['status'] = 'error';
-            $error_message_from_db = $e->getMessage();
-            $error_code_from_db = $e->getCode();
-            if ($error_code_from_db == 1062) { // MySQL error code for duplicate entry
-                $response['message'] = 'A subject with this title or similar details might already exist.';
-            } else {
-                $response['message'] = 'Database error during subject addition: ' . $error_message_from_db;
-            }
-        } finally {
-            $stmt->close(); // Always close the statement
-        }
-    } else {
-        // If preparing the statement fails
-        $response['status'] = 'error';
-        $response['message'] = 'Error preparing SQL statement for subject addition: ' . $mysqli->error;
+    if (!move_uploaded_file($fileTmpPath, $destPath)) {
+        http_response_code(500); // Internal Server Error
+        echo json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file. Check directory permissions.']);
+        exit();
     }
-} else {
-    // If the request method is not POST
-    $response['status'] = 'error';
-    $response['message'] = 'Invalid request method. Only POST requests are allowed.';
+
+    $pdfUrl = $baseUrl . $newFileName;
+} else if (isset($_FILES['pdfFile']) && $_FILES['pdfFile']['error'] !== UPLOAD_ERR_NO_FILE) {
+    // Handle other upload errors (e.g., UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE)
+    http_response_code(400); // Bad Request
+    echo json_encode(['status' => 'error', 'message' => 'File upload error: ' . $_FILES['pdfFile']['error']]);
+    exit();
 }
 
-// Close the database connection and send the JSON response
+
+// Insert into DB
+$sql = "INSERT INTO Sujetsstage (titre, description, pdfUrl) VALUES (?, ?, ?)";
+$stmt = $mysqli->prepare($sql);
+if ($stmt === false) {
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Prepare failed: ' . $mysqli->error]);
+    exit();
+}
+$stmt->bind_param("sss", $titre, $description, $pdfUrl);
+
+if ($stmt->execute()) {
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Subject added successfully!',
+        'data' => [
+            'sujetID' => (string)$mysqli->insert_id,
+            'titre' => $titre,
+            'description' => $description,
+            'pdfUrl' => $pdfUrl
+        ]
+    ]);
+} else {
+    http_response_code(500); // Internal Server Error
+    echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $stmt->error]);
+}
+
+$stmt->close();
 $mysqli->close();
-echo json_encode($response);
-exit(); // Ensure no extra output
 ?>

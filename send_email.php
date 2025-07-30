@@ -1,50 +1,67 @@
 <?php
-// send_email.php
+// PHPMailer Autoload (assuming it's already included via Composer in your main script)
+// require 'vendor/autoload.php'; // No need to include here if already in the calling script
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Load Composer's autoloader for PHPMailer
-require_once __DIR__ . '/vendor/autoload.php';
-
-// Include the sensitive mail configuration file
-// IMPORTANT: Ensure mail_config.php is in your .gitignore!
-// Corrected path: Added a directory separator '/'
-require_once __DIR__ . '/mail_config.php'; 
-
-function sendInternshipAcceptanceEmail($recipientEmail, $recipientName, $subjectTitle) {
-    $mail = new PHPMailer(true); // true enables exceptions
+/**
+ * Sends an internship acceptance email to the student with an optional PDF attachment link.
+ *
+ * @param string $recipientEmail The student's email address.
+ * @param string $recipientName The student's full name.
+ * @param string $subjectTitle The title of the accepted internship subject.
+ * @param string $pdfUrl (Optional) The URL to the generated PDF acceptance letter.
+ * @return array An associative array with 'status' (success/error) and 'message'.
+ */
+function sendInternshipAcceptanceEmail($recipientEmail, $recipientName, $subjectTitle, $pdfUrl = '') {
+    $mail = new PHPMailer(true); // Enable exceptions
 
     try {
-        // Server settings
+        // Server settings (replace with your actual SMTP settings)
         $mail->isSMTP();
-        $mail->Host       = SMTP_HOST;
+        $mail->Host       = 'smtp.gmail.com'; // Your SMTP host (e.g., smtp.gmail.com for Gmail)
         $mail->SMTPAuth   = true;
-        $mail->Username   = SMTP_USERNAME;
-        $mail->Password   = SMTP_PASSWORD;
-        $mail->SMTPSecure = SMTP_SECURE;
-        $mail->Port       = SMTP_PORT;
+        // IMPORTANT: Replace with your actual email and App Password
+        $mail->Username   = 'your_email@gmail.com'; // Your SMTP username (e.g., your Gmail address)
+        $mail->Password   = 'your_app_password';   // Your Gmail App Password (NOT your regular password)
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Use TLS encryption
+        $mail->Port       = 587; // TLS port
 
         // Recipients
-        $mail->setFrom(SENDER_EMAIL, SENDER_NAME);
-        $mail->addAddress($recipientEmail, $recipientName);
+        $mail->setFrom('your_email@gmail.com', 'ISIMM Internship Office'); // Your sender email and name
+        $mail->addAddress($recipientEmail, $recipientName); // Add a recipient
 
         // Content
-        $mail->isHTML(false); // Set to true if you want to send HTML emails
-        $mail->Subject = "Your Internship Application for '$subjectTitle' has been ACCEPTED!";
-        $message_body = "Dear $recipientName,\n\n";
-        $message_body .= "We are pleased to inform you that your internship application for the subject: '$subjectTitle' has been ACCEPTED.\n\n";
-        $message_body .= "Congratulations!\n\n";
-        $message_body .= "Sincerely,\nYour Internship Management Team";
-        $mail->Body    = $message_body;
-        $mail->AltBody = $message_body; // Plain text version for non-HTML mail clients
+        $mail->isHTML(true); // Set email format to HTML
+        $mail->Subject = 'Internship Acceptance: ' . htmlspecialchars($subjectTitle);
+        
+        $body = '
+            <p>Dear ' . htmlspecialchars($recipientName) . ',</p>
+            <p>We are thrilled to inform you that your internship application for the subject: <strong>"' . htmlspecialchars($subjectTitle) . '"</strong> has been officially **accepted** at the Higher Institute of Computer Science and Mathematics of Monastir (ISIMM)!</p>
+            <p>This is a fantastic opportunity, and we are excited to have you join us.</p>';
+        
+        if (!empty($pdfUrl)) {
+            $body .= '<p>You can download your official acceptance letter here: <a href="' . htmlspecialchars($pdfUrl) . '">Download Acceptance Letter</a></p>';
+        } else {
+            $body .= '<p>An official acceptance letter will be provided to you soon.</p>';
+        }
+
+        $body .= '
+            <p>Further details regarding your internship will be communicated to you soon by the internship office.</p>
+            <p>Congratulations and welcome aboard!</p>
+            <p>Sincerely,</p>
+            <p>The Internship Management Team<br>Higher Institute of Computer Science and Mathematics of Monastir (ISIMM)</p>';
+
+        $mail->Body = $body;
+        $mail->AltBody = 'Dear ' . htmlspecialchars($recipientName) . ', Your internship application for "' . htmlspecialchars($subjectTitle) . '" has been accepted. Download your acceptance letter here: ' . htmlspecialchars($pdfUrl) . ' Regards, ISIMM Internship Office.';
 
         $mail->send();
-        return ['status' => 'success', 'message' => 'Email sent to student via SMTP.'];
+        return ['status' => 'success', 'message' => 'Acceptance email sent successfully.'];
     } catch (Exception $e) {
-        // Log the error for debugging purposes
-        error_log("PHPMailer Error sending acceptance email to $recipientEmail: {$mail->ErrorInfo}");
-        return ['status' => 'error', 'message' => "Email could not be sent. Mailer Error: {$mail->ErrorInfo}"];
+        // Log the error for debugging, but don't expose too much detail to the client
+        error_log("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
+        return ['status' => 'error', 'message' => 'Failed to send acceptance email. Please try again later.'];
     }
 }
 ?>

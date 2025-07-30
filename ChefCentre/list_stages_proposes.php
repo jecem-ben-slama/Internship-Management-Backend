@@ -57,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             s.encadrantProID,
             sup.username AS supervisorUsername,
             sup.lastname AS supervisorLastname,
-            s.chefCentreValidationID
+            s.encadrantAcademiqueID
         FROM
             stages s
         LEFT JOIN
