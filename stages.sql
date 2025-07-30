@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 30, 2025 at 04:38 PM
+-- Generation Time: Jul 30, 2025 at 05:51 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -241,17 +241,20 @@ INSERT INTO `stages` (`stageID`, `etudiantID`, `sujetID`, `typeStage`, `dateDebu
 CREATE TABLE `sujetsstage` (
   `sujetID` int(11) NOT NULL,
   `titre` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL
+  `description` text DEFAULT NULL,
+  `pdfUrl` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `sujetsstage`
 --
 
-INSERT INTO `sujetsstage` (`sujetID`, `titre`, `description`) VALUES
-(2, 'test', 'test'),
-(3, 'what', 'teyghs'),
-(4, 'application web', 'ssss');
+INSERT INTO `sujetsstage` (`sujetID`, `titre`, `description`, `pdfUrl`) VALUES
+(2, 'test', 'test', ''),
+(3, 'what', 'teyghs', ''),
+(4, 'application web', 'ssss', ''),
+(5, 'ssd', 'sds', 'http://localhost/Backend/Gestionnaire/Subjects/pdf_688a3a348966a8.76933142.pdf'),
+(6, 'ss', 's', 'http://localhost/Backend/Gestionnaire/Subjects/pdf_688a3a6f7956d4.33260946.pdf');
 
 -- --------------------------------------------------------
 
@@ -429,7 +432,7 @@ ALTER TABLE `stages`
 -- AUTO_INCREMENT for table `sujetsstage`
 --
 ALTER TABLE `sujetsstage`
-  MODIFY `sujetID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `sujetID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `users`
