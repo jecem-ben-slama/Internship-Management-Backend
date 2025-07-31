@@ -56,9 +56,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Validate 'note' only if actionType is 'validate' and note is provided
     if ($actionType === 'validate' && $note !== null) {
-        if (!is_numeric($note) || $note < 0 || $note > 10) { // Assuming a 0-10 scale for 'note'
+        if (!is_numeric($note) || $note < 0 || $note > 20) { // Assuming a 0-10 scale for 'note'
             http_response_code(400);
-            $response = ['status' => 'error', 'message' => 'Note must be a number between 0 and 10 for validation.'];
+            $response = ['status' => 'error', 'message' => 'Note must be a number between 0 and 20 for validation.'];
             echo json_encode($response);
             $mysqli->close();
             exit();
@@ -120,7 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $dateEvaluation = date('Y-m-d'); // Current date for evaluation
 
         if ($actionType === 'validate') {
-            $newStageStatus = 'Terminé';
+            $newStageStatus = 'Finished';
             if ($evaluationExists) {
                 // Update existing evaluation
                 $sql_eval = "UPDATE evaluations SET dateEvaluation = ?, note = ?, commentaires = ? WHERE stageID = ? AND encadrantID = ?";
@@ -139,7 +139,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $message = "Internship evaluated and Validated!";
             }
         } else if ($actionType === 'unvalidate') {
-            $newStageStatus = 'Refusé'; // Or 'Non Validé' as per your system
+            $newStageStatus = 'Refused'; // Or 'Non Validé' as per your system
             if ($evaluationExists) {
                 // Option 1: Clear evaluation data (keeps record, but clears content)
                 $sql_eval = "UPDATE evaluations SET note = NULL, commentaires = NULL, dateEvaluation = ? WHERE stageID = ? AND encadrantID = ?";

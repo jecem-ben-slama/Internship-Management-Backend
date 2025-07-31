@@ -63,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         LEFT JOIN sujetsstage su ON s.sujetID = su.sujetID
         LEFT JOIN users u ON s.encadrantProID = u.userID
         LEFT JOIN evaluations ev ON s.stageID = ev.stageID AND s.encadrantProID = ev.encadrantID
-        WHERE s.stageID = ? AND s.statut = 'Validé'
+        WHERE s.stageID = ? AND s.statut = 'Validated'
     ";
 
     $stmt = $mysqli->prepare($sql);

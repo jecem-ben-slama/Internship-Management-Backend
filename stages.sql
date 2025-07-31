@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 30, 2025 at 05:51 PM
+-- Generation Time: Jul 31, 2025 at 10:58 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -37,14 +37,6 @@ CREATE TABLE `attestations` (
   `pdfType` varchar(50) NOT NULL DEFAULT 'attestation'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `attestations`
---
-
-INSERT INTO `attestations` (`attestationID`, `stageID`, `dateGeneration`, `qrCodeData`, `pdf_file_path`, `verificationToken`, `pdfType`) VALUES
-(12, 9, '2025-07-29 00:00:00', NULL, 'http://localhost/Backend/Files/attestation_9_6888af8a158e7.pdf', NULL, 'attestation'),
-(13, 9, '2025-07-29 00:00:00', NULL, 'http://localhost/Backend/Files/paie_9_6888ae68113af.pdf', NULL, 'paie');
-
 -- --------------------------------------------------------
 
 --
@@ -73,16 +65,6 @@ CREATE TABLE `documents` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `documents`
---
-
-INSERT INTO `documents` (`id`, `stage_id`, `document_type`, `document_url`, `dateGeneration`, `created_at`, `updated_at`) VALUES
-(2, 9, 'paie', 'http://localhost/Backend/Files/paie_9_6889ddcda23f6.pdf', '2025-07-30', '2025-07-29 11:25:30', '2025-07-30 08:54:37'),
-(4, 14, 'paie', 'http://localhost/Backend/Files/paie_14_6888b4dc8f164.pdf', '2025-07-29', '2025-07-29 11:33:34', '2025-07-29 11:47:40'),
-(5, 9, 'attestation', 'http://localhost/Backend/Files/attestation_9_6889ec5508bfd.pdf', '2025-07-30', '2025-07-29 15:37:32', '2025-07-30 09:56:37'),
-(6, 14, 'attestation', 'http://localhost/Backend/Files/attestation_14_6889c77fcf515.pdf', '2025-07-30', '2025-07-30 07:19:27', '2025-07-30 07:19:27');
 
 -- --------------------------------------------------------
 
@@ -136,9 +118,7 @@ CREATE TABLE `evaluations` (
 --
 
 INSERT INTO `evaluations` (`evaluationID`, `stageID`, `dateEvaluation`, `note`, `commentaires`, `encadrantID`, `chefCentreValidationID`, `dateValidationChef`) VALUES
-(3, 9, '2025-07-29', 9.00, '', 5, 3, '2025-07-29'),
-(4, 14, '2025-07-30', 8.00, 'bravoo', 5, 3, '2025-07-29'),
-(5, 21, '2025-07-30', 9.00, 'kljklj', 5, NULL, NULL);
+(6, 36, '2025-07-31', 15.00, '', 5, 3, '2025-07-31');
 
 -- --------------------------------------------------------
 
@@ -180,16 +160,6 @@ CREATE TABLE `stagenotes` (
   `contenuNote` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `stagenotes`
---
-
-INSERT INTO `stagenotes` (`noteID`, `stageID`, `encadrantID`, `dateNote`, `contenuNote`) VALUES
-(5, 9, 5, '2025-07-29 08:42:58', 'nl,njl'),
-(6, 14, 5, '2025-07-29 11:30:59', 'baddel background'),
-(7, 14, 5, '2025-07-29 11:31:10', 'yaatik sa7a'),
-(8, 26, 5, '2025-07-30 08:51:04', 'changer email d\'affectation');
-
 -- --------------------------------------------------------
 
 --
@@ -203,7 +173,7 @@ CREATE TABLE `stages` (
   `typeStage` varchar(50) NOT NULL,
   `dateDebut` date NOT NULL,
   `dateFin` date NOT NULL,
-  `statut` enum('Proposé','Validé','Refusé','En cours','Terminé','Annulé','accepté') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_nopad_ci NOT NULL DEFAULT 'Proposé',
+  `statut` enum('Proposed','Validated','Refused','In Progress','Finished','Canceled','Accepted') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_nopad_ci NOT NULL DEFAULT 'Proposed',
   `estRemunere` tinyint(1) NOT NULL DEFAULT 0,
   `montantRemuneration` decimal(10,2) DEFAULT NULL,
   `encadrantProID` int(11) DEFAULT NULL,
@@ -215,22 +185,10 @@ CREATE TABLE `stages` (
 --
 
 INSERT INTO `stages` (`stageID`, `etudiantID`, `sujetID`, `typeStage`, `dateDebut`, `dateFin`, `statut`, `estRemunere`, `montantRemuneration`, `encadrantProID`, `encadrantAcademiqueID`) VALUES
-(9, 4, 2, 'PFA', '2025-07-29', '2025-07-29', 'Validé', 1, 150.00, 5, NULL),
-(10, 4, NULL, 'Pfa', '2024-09-01', '2025-02-28', 'Refusé', 1, 90.50, 5, NULL),
-(11, 4, NULL, 'Pfa', '2024-09-01', '2025-02-28', 'accepté', 1, 90.50, 5, NULL),
-(12, 4, NULL, 'Pfa', '2024-09-01', '2025-02-28', 'accepté', 1, 90.50, 5, NULL),
-(13, 4, NULL, 'Pfa', '2024-09-01', '2025-02-28', 'accepté', 1, 90.50, 5, NULL),
-(14, 5, 3, 'PFA', '2025-07-29', '2025-07-29', 'Terminé', 1, 40.00, 5, NULL),
-(17, 4, NULL, 'PFA', '2025-07-29', '2025-07-29', 'Proposé', 0, NULL, 5, NULL),
-(18, 4, NULL, 'PFA', '2025-07-29', '2025-07-29', 'Proposé', 0, NULL, 5, NULL),
-(19, 4, 2, 'PFE', '2025-09-01', '2025-12-31', 'Refusé', 1, 500.75, 5, NULL),
-(20, 4, NULL, 'PFA', '2025-07-29', '2025-07-29', 'Proposé', 0, NULL, 5, NULL),
-(21, 5, NULL, 'PFA', '2025-07-29', '2025-07-29', 'Terminé', 0, NULL, 5, NULL),
-(22, 5, NULL, 'PFA', '2025-07-29', '2025-07-29', 'Proposé', 0, NULL, 37, NULL),
-(23, 7, NULL, 'Stage Ouvrier', '2025-07-29', '2025-07-29', 'Refusé', 0, NULL, 5, NULL),
-(24, 4, NULL, 'Stage Ouvrier', '2025-07-29', '2025-07-29', 'Proposé', 0, NULL, 5, 36),
-(25, 4, 2, 'PFE', '2025-09-01', '2025-12-31', 'Proposé', 1, 500.75, 5, 36),
-(26, 5, 4, 'PFA', '2025-07-30', '2025-07-31', 'En cours', 1, 150.00, 5, 38);
+(33, 7, 6, 'PFE', '2025-09-01', '2025-12-31', 'In Progress', 1, 500.75, 5, NULL),
+(34, 6, NULL, 'PFE', '2025-09-01', '2025-12-31', 'Accepted', 1, 500.75, 5, NULL),
+(35, 5, NULL, 'PFE', '2025-09-01', '2025-12-31', 'Refused', 1, 500.75, 5, NULL),
+(36, 4, 4, 'PFE', '2025-09-01', '2025-06-03', 'Validated', 1, 500.75, 5, NULL);
 
 -- --------------------------------------------------------
 
@@ -402,7 +360,7 @@ ALTER TABLE `etudiants`
 -- AUTO_INCREMENT for table `evaluations`
 --
 ALTER TABLE `evaluations`
-  MODIFY `evaluationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `evaluationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `paiements`
@@ -426,7 +384,7 @@ ALTER TABLE `stagenotes`
 -- AUTO_INCREMENT for table `stages`
 --
 ALTER TABLE `stages`
-  MODIFY `stageID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `stageID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `sujetsstage`

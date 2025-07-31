@@ -86,7 +86,7 @@ function sendInternshipAcceptanceEmail($recipientEmail, $recipientName, $subject
 
         $body = '
             <p>Dear ' . htmlspecialchars($recipientName) . ',</p>
-            <p>We are thrilled to inform you that your internship application for the subject: <strong>"' . htmlspecialchars($subjectTitle) . '"</strong> has been officially **accepted** at the Higher Institute of Computer Science and Mathematics of Monastir (ISIMM)!</p>
+            <p>We are thrilled to inform you that your internship application  has been officially **Accepted** </p>
             <p>This is a fantastic opportunity, and we are excited to have you join us.</p>';
 
         if (!empty($pdfUrl)) {
@@ -99,10 +99,10 @@ function sendInternshipAcceptanceEmail($recipientEmail, $recipientName, $subject
             <p>Further details regarding your internship will be communicated to you soon by the internship office.</p>
             <p>Congratulations and welcome aboard!</p>
             <p>Sincerely,</p>
-            <p>The Internship Management Team<br>Higher Institute of Computer Science and Mathematics of Monastir (ISIMM)</p>';
+            <p>The Internship Management Team</p>';
 
         $mail->Body = $body;
-        $mail->AltBody = 'Dear ' . htmlspecialchars($recipientName) . ', Your internship application for "' . htmlspecialchars($subjectTitle) . '" has been accepted. Download your acceptance letter here: ' . htmlspecialchars($pdfUrl) . ' Regards, ISIMM Internship Office.';
+        $mail->AltBody = 'Dear ' . htmlspecialchars($recipientName) . ', Your internship application has been accepted. Download your acceptance letter here: ' . htmlspecialchars($pdfUrl) . ' Regards.';
 
         $mail->send();
         return ['status' => 'success', 'message' => 'Acceptance email sent successfully.'];
@@ -259,7 +259,7 @@ if ($_SERVER["REQUEST_METHOD"] == "PUT") {
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
             // If the status was successfully updated AND the new status is 'Accepté'
-            if ($newStatus === 'Accepté') {
+            if ($newStatus === 'Accepted') {
                 $studentEmail = '';
                 $studentName = '';
                 $subjectTitle = '';

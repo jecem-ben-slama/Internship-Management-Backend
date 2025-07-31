@@ -76,7 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             SET
                 sujetID = ?,
                 encadrantProID = ?,
-                statut = 'en cours'
+                statut = 'In Progress'
             WHERE
                 stageID = ?
                 AND (encadrantProID IS NULL OR encadrantProID = ?);

@@ -57,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             $stmt_eval->bind_param("ii", $chefCentreID, $evaluationID);
             $statusMessage = "Evaluation validated successfully.";
-            $newInternshipStatus = 'Validé';
+            $newInternshipStatus = 'Validated';
         } else { // actionType === 'reject'
             $stmt_eval = $mysqli->prepare("
                 UPDATE evaluations
@@ -69,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             $stmt_eval->bind_param("i", $evaluationID);
             $statusMessage = "Evaluation rejected successfully.";
-            $newInternshipStatus = 'Rejeté'; // Or 'Non validé'
+            $newInternshipStatus = 'Rejected'; // Or 'Non validé'
         }
 
         $stmt_eval->execute();

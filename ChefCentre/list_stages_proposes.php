@@ -36,7 +36,7 @@ if (!in_array($userData['role'], $allowedRoles)) {
 // Check if the request method is GET
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
     // Hardcode the status to 'Proposé' as this endpoint is specifically for proposed stages
-    $targetStatus = 'Proposé';
+    $targetStatus = 'Proposed';
 
     // Base SQL query
     $sql = "
@@ -67,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         LEFT JOIN
             users sup ON s.encadrantProID = sup.userID
         WHERE
-            s.statut = ?  -- Filter directly by 'Proposé'
+            s.statut = ?  -- Filter directly by 'Proposed'
         ORDER BY s.dateDebut DESC
     ";
 

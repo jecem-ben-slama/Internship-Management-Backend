@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $typeStage = trim($input['typeStage'] ?? '');
     $dateDebut = trim($input['dateDebut'] ?? '');
     $dateFin = trim($input['dateFin'] ?? '');
-    $statut = "Proposé";
+    $statut = "Proposed";
     $estRemunere = filter_var($input['estRemunere'] ?? null, FILTER_VALIDATE_INT);
     $montantRemuneration = isset($input['montantRemuneration']) ? filter_var($input['montantRemuneration'], FILTER_VALIDATE_FLOAT) : null;
     $encadrantProID = isset($input['encadrantProID']) ? filter_var($input['encadrantProID'], FILTER_VALIDATE_INT) : null;
