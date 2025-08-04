@@ -42,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         LEFT JOIN sujetsstage su ON s.sujetID = su.sujetID
         LEFT JOIN users u ON s.encadrantProID = u.userID
         JOIN evaluations ev ON s.stageID = ev.stageID AND s.encadrantProID = ev.encadrantID
-        WHERE s.statut = 'Validated' AND ev.note IS NOT NULL AND ev.commentaires IS NOT NULL
+        WHERE s.statut = 'Validated' 
         ORDER BY s.dateFin DESC
     ";
 

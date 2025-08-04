@@ -304,8 +304,8 @@ if ($_SERVER["REQUEST_METHOD"] == "PUT") {
                         // --- End PDF Generation ---
 
                         // Call the function to send email, passing the PDF URL
-                        $emailSendResult = sendInternshipAcceptanceEmail($studentEmail, $studentName, $subjectTitle, $pdfUrl);
-                        $response['email_status'] = $emailSendResult['message'];
+                        //$emailSendResult = sendInternshipAcceptanceEmail($studentEmail, $studentName, $subjectTitle, $pdfUrl);
+                        //$response['email_status'] = $emailSendResult['message'];
 
                     } else {
                         // This block should ideally not be hit if data is consistently linked.

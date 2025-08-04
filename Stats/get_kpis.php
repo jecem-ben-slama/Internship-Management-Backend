@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     // 1. Number of Active/Ongoing Internships
     // Assuming 'En Cours' is the status for ongoing internships.
     // You might want to include other statuses like 'Accepté' if they are also considered active before 'En Cours'.
-    $sql_active_internships = "SELECT COUNT(*) AS activeInternshipsCount FROM stages WHERE statut = 'En Cours'";
+    $sql_active_internships = "SELECT COUNT(*) AS activeInternshipsCount FROM stages WHERE statut = 'In Progress'";
     $stmt_active = $mysqli->prepare($sql_active_internships);
     if (!$stmt_active) {
         http_response_code(500);

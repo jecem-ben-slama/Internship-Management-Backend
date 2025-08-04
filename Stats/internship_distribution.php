@@ -201,7 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             etu.nomFaculte AS facultyName,
             COUNT(DISTINCT etu.etudiantID) AS totalStudents,
             COUNT(s.stageID) AS totalInternships,
-            COUNT(CASE WHEN s.statut = 'Validé' THEN s.stageID ELSE NULL END) AS validatedInternships
+            COUNT(CASE WHEN s.statut = 'Validated' THEN s.stageID ELSE NULL END) AS validatedInternships
         FROM
             etudiants etu
         LEFT JOIN -- Use LEFT JOIN to include faculties even if they have no internships

@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 header('Content-Type: application/json');
 $response = array();
 
-$userData = verifyJwtToken(); // Get user data from JWT
+$userData = verifyJwtToken();
 $allowedRoles = ['Encadrant'];
 
 if (!in_array($userData['role'], $allowedRoles)) {
@@ -27,8 +27,8 @@ if (!in_array($userData['role'], $allowedRoles)) {
     exit();
 }
 
-$encadrantID = $userData['userID']; // The ID of the logged-in Encadrant
-$currentDate = date('Y-m-d'); // Get current date
+$encadrantID = $userData['userID'];
+$currentDate = date('Y-m-d');
 
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
     $sql = "
@@ -46,29 +46,36 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             s.encadrantProID,
             s.encadrantAcademiqueID AS stageChefCentreValidationID,
 
-            etu.username AS studentFirstName,   -- Student's first name from etudiants
-            etu.lastName AS studentLastName,     -- Student's last name from etudiants
+            etu.username AS studentFirstName,
+            etu.lastName AS studentLastName,
 
-            u_encadrant_pro.username AS supervisorName, -- Professional supervisor's username (from users table)
-            u_encadrant_pro.username AS encadrantProName, -- For consistency if needed
+            u_encadrant_pro.username AS supervisorName,
+            u_encadrant_pro.username AS encadrantProName,
 
             e.evaluationID,
             e.dateEvaluation,
             e.note,
             e.commentaires,
             e.chefCentreValidationID AS evaluationChefCentreValidationID,
-            e.dateValidationChef
+            e.dateValidationChef,
+            
+            -- --- START OF MODIFICATION ---
+            -- Add the new evaluation fields to the SELECT statement
+            e.displine,
+            e.interest,
+            e.presence
+            -- --- END OF MODIFICATION ---
         FROM
             stages s
         LEFT JOIN
-            etudiants etu ON s.etudiantID = etu.etudiantID  -- Join stages to etudiants table
+            etudiants etu ON s.etudiantID = etu.etudiantID
         
         LEFT JOIN
-            users u_encadrant_pro ON s.encadrantProID = u_encadrant_pro.userID -- Join for professional supervisor name
+            users u_encadrant_pro ON s.encadrantProID = u_encadrant_pro.userID
         LEFT JOIN
-            sujetsstage sj ON s.sujetID = sj.sujetID -- Join for subject title
+            sujetsstage sj ON s.sujetID = sj.sujetID
         LEFT JOIN
-            evaluations e ON s.stageID = e.stageID AND e.encadrantID = ? -- Join for this specific encadrant's evaluation
+            evaluations e ON s.stageID = e.stageID AND e.encadrantID = ?
         WHERE
             s.encadrantProID = ? AND s.dateFin <= ?
         ORDER BY
@@ -102,16 +109,12 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             'montantRemuneration' => (double)$row['montantRemuneration'],
             'encadrantProID' => $row['encadrantProID'],
             'chefCentreValidationID' => $row['stageChefCentreValidationID'],
-
-            // Concatenate first and last name for studentName
-            'studentName' => (isset($row['studentFirstName']) && isset($row['studentLastName'])) 
-                             ? $row['studentFirstName'] . ' ' . $row['studentLastName'] 
-                             : null, // If either is null, set studentName to null
-
+            'studentName' => (isset($row['studentFirstName']) && isset($row['studentLastName']))
+                               ? $row['studentFirstName'] . ' ' . $row['studentLastName']
+                               : null,
             'supervisorName' => $row['supervisorName'],
             'encadrantProName' => $row['encadrantProName'],
-            'encadrantPedaName' => null, // Not fetched in this query, explicitly set to null
-
+            'encadrantPedaName' => null,
             'encadrantEvaluation' => null
         ];
 
@@ -121,10 +124,17 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 'stageID' => $row['stageID'],
                 'encadrantID' => $encadrantID,
                 'dateEvaluation' => $row['dateEvaluation'],
-                'note' => $row['note'],
+                'note' => $row['note'] !== null ? (double)$row['note'] : null, // Cast note to double
                 'commentaires' => $row['commentaires'],
                 'chefCentreValidationID' => $row['evaluationChefCentreValidationID'],
-                'dateValidationChef' => $row['dateValidationChef']
+                'dateValidationChef' => $row['dateValidationChef'],
+                
+                // --- START OF MODIFICATION ---
+                // Add the new fields to the evaluation array in the response
+                'displine' => $row['displine'],
+                'interest' => $row['interest'],
+                'presence' => $row['presence']
+                // --- END OF MODIFICATION ---
             ];
         }
         $internships[] = $internship;
